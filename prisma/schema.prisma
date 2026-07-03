@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GoalPeriod {
+  WEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum TrackingType {
+  BOOLEAN
+  NUMERIC
+}
+
+model Goal {
+  id           String       @id @default(cuid())
+  title        String
+  description  String?
+  period       GoalPeriod   @default(CUSTOM)
+  trackingType TrackingType @default(BOOLEAN)
+  targetValue  Float?
+  unit         String?
+  startDate    DateTime     @db.Date
+  endDate      DateTime?    @db.Date
+  color        String       @default("#6366f1")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  entries      DailyEntry[]
+}
+
+model DailyEntry {
+  id        String   @id @default(cuid())
+  goalId    String
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  completed Boolean  @default(false)
+  value     Float?
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([goalId, date])
+  @@index([date])
+}
